@@ -1,0 +1,9 @@
+# Exclude large files and venv
+.venv/
+node_modules/
+*.zip
+*.log
+__pycache__/
+.git/
+tests/
+tools/

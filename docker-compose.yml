@@ -1,0 +1,40 @@
+services:
+  emqx:
+    image: emqx/emqx:5.7
+    ports:
+      - "18083:18083" # Dashboard
+      - "1883:1883" # MQTT
+    environment:
+      EMQX_LOADED_PLUGINS: "emqx_recon,recon,emqx_management"
+
+  timescale:
+    image: timescale/timescaledb:latest-pg16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: carbon
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - timescale
+      - redis
+      - emqx
+    environment:
+      DATABASE_URL: postgresql://postgres:password@timescale:5432/carbon
+      REDIS_URL: redis://redis:6379
+      MQTT_BROKER: emqx
+
+volumes:
+  timescale_data:
